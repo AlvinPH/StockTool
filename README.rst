@@ -1,6 +1,10 @@
-Sample Module Repository
+Stock Tool Module Repository
 ========================
 
-This simple project is an example repo for Python projects.
 
-`Learn more <http://www.kennethreitz.org/essays/repository-structure-and-python>`_.
+This is a project that can collect Taiwan Stock Information.
+
+it start at 2017/08/15.
+
+I hope I can learn more about Python by developing tools.
+

@@ -16,7 +16,7 @@ setup(
     long_description=readme,
     author='Alvin Lai',
     author_email='toy112221@gmail.com',
-    url='https://github.com/kennethreitz/samplemod',
+    url='https://github.com/AlvinPH/StockTool',
     license=license,
     packages=find_packages(exclude=('tests', 'docs'))
 )
