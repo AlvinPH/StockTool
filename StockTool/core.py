@@ -107,8 +107,8 @@ class Crawler():
 		date_str = '{0}/{1:02d}/{2:02d}'.format(spec_date.year-1911, spec_date.month, spec_date.day)
 		
 		ttime = str(int(time.time()*100))
-        url = 'http://www.tpex.org.tw/web/stock/aftertrading/daily_close_quotes/stk_quote_result.php?l=zh-tw&d={}&_={}'.format(date_str, ttime)
-        page = requests.get(url)
+		url = 'http://www.tpex.org.tw/web/stock/aftertrading/daily_close_quotes/stk_quote_result.php?l=zh-tw&d={}&_={}'.format(date_str, ttime)
+		page = requests.get(url)
 
 		if not page.ok:
 			logging.error("Can not get OTC data at {}".format(date_str))
@@ -182,6 +182,64 @@ class Crawler():
 
 		if lastday_update:
 			with open(self.prefix + '/lastday.txt', 'w') as f:
+				# Nowdate += timedelta(days=-1)
+				date_str = '{0}{1:02d}{2:02d}'.\
+					format(Nowdate.year,Nowdate.month, Nowdate.day)
+				f.write(date_str)
+				f.close()
+
+	def check_all_otc_data(self):
+		Filelist = os.listdir(self.prefix)
+		if 'offdayOTC.xlsx' in Filelist:
+			offday_ser = pd.read_excel(self.prefix + '/offdayOTC.xlsx')
+			offday_ser = offday_ser['date'].copy()
+		else:
+			offday_ser = Series(name='date', data='First')
+
+		offday_update = False
+		lastday_update = False
+
+		Now = datetime.now()
+		Nowdate = datetime(Now.year, Now.month, Now.day)
+
+		if 'lastdayOTC.txt' in Filelist:
+			with open(self.prefix + '/lastdayOTC.txt', 'r') as f:
+				read_data = f.read()
+				f.close()
+				Startdate = datetime(int(read_data[0:4]), 
+									int(read_data[4:6]), 
+									int(read_data[6:8]))
+		else:
+			#Start from 2007(096)/04/23
+			Startdate = datetime(2007, 4, 23)
+		
+		datediff = timedelta(days=1)
+		
+		while Startdate <= Nowdate:
+			date_str = '{0}{1:02d}{2:02d}'.\
+					format(Startdate.year-1911,Startdate.month, Startdate.day)
+			print('Read ' + date_str + ' OTC')
+			if ('%sOTC.xlsx' %(date_str)) not in Filelist:# not in FileList
+				if (offday_ser != date_str).all():# not a offday
+					lastday_update = True
+					data_df = self.get_otc_one_day(Startdate) # collect data
+					if isinstance(data_df, DataFrame):# success
+						data_df.to_excel('{0}/{1}OTC.xlsx'.format(self.prefix,date_str))# save data
+					else:# is an offday, update offday series
+						offday_ser.set_value( len(offday_ser), date_str)
+						offday_update = True
+						print(date_str + 'is an offday')
+				else:
+					print(date_str + ' is known as an offday')
+			else:
+				print(date_str + ' is in FileList')
+			Startdate = Startdate + datediff
+
+		if offday_update:
+			offday_ser.to_excel(self.prefix + '/offdayOTC.xlsx')
+
+		if lastday_update:
+			with open(self.prefix + '/lastdayOTC.txt', 'w') as f:
 				# Nowdate += timedelta(days=-1)
 				date_str = '{0}{1:02d}{2:02d}'.\
 					format(Nowdate.year,Nowdate.month, Nowdate.day)
