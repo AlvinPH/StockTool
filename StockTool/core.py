@@ -112,8 +112,9 @@ class Crawler():
 
 		if not page.ok:
 			logging.error("Can not get OTC data at {}".format(date_str))
-
+		# print(page.content)
 		content = page.json()
+
 		# print(content)
 		# key = 'Nodata'
 		if (len(content['aaData']) + len(content['mmData'])) == 0:
@@ -212,6 +213,7 @@ class Crawler():
 		else:
 			#Start from 2007(096)/04/23
 			Startdate = datetime(2007, 4, 23)
+			# Startdate = datetime(2008, 2, 28)
 		
 		datediff = timedelta(days=1)
 		
@@ -222,6 +224,9 @@ class Crawler():
 			if ('%sOTC.xlsx' %(date_str)) not in Filelist:# not in FileList
 				if (offday_ser != date_str).all():# not a offday
 					lastday_update = True
+					
+					time.sleep(np.random.random())
+
 					data_df = self.get_otc_one_day(Startdate) # collect data
 					if isinstance(data_df, DataFrame):# success
 						data_df.to_excel('{0}/{1}OTC.xlsx'.format(self.prefix,date_str))# save data
